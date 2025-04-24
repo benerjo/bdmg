@@ -47,10 +47,24 @@ pub enum Error {
         file: String,
     },
     UnableToWriteToFile {
-        file: std::fs::File,
+        file: String,
         content: String,
     },
     UnableToWriteCodeForObject {
         object_name: String,
     },
 }
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::UnableToCreateOutputDirectory { destination, error } => writeln!(f, "Unable to create the directory '{destination}': Error: {error}"),
+            Error::DestinationIsNotDirectory { destination } => writeln!(f, "The destination '{destination}' is not a directory."),
+            Error::UnableToCreateFile { file } => writeln!(f, "Unable to create the file '{file}'."),
+            Error::UnableToWriteToFile { file, content } => writeln!(f, "Unable to write to the file '{file}': >>>{}", content.replace("\n", "\n>>>")),
+            Error::UnableToWriteCodeForObject { object_name } => writeln!(f, "Unable to create the code for the object '{object_name}'."),
+        }
+    }
+}
+
+impl std::error::Error for Error {}

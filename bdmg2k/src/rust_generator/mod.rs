@@ -33,7 +33,7 @@ use self::free_fn::generate_rust_free_functions;
 use self::rust_impl::generate_rust_impl;
 use self::traits_impl::generate_traits_impl;
 
-fn get_lib_file(mut destination: PathBuf) -> Result<File, Error> {
+fn get_lib_file(mut destination: PathBuf) -> Result<(File, String), Error> {
     if !destination.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match destination.to_str() {
@@ -46,23 +46,25 @@ fn get_lib_file(mut destination: PathBuf) -> Result<File, Error> {
     destination.push("lib");
     destination.set_extension("rs");
 
+    let filename = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => String::from("lib.rs"),
+    };
+
     match File::create(destination.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match destination.as_path().to_str() {
-                    Some(pth) => String::from(pth),
-                    None => String::from("lib.rs"),
-                },
+                file: filename,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, filename)),
     }
 }
 
 ///Retrieve the file that should contain the mod file
 ///
 /// The file will be located inside of the destination that is given as parameter
-fn get_mod_file(mut destination: PathBuf) -> Result<File, Error> {
+fn get_mod_file(mut destination: PathBuf) -> Result<(File, String), Error> {
     if !destination.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match destination.to_str() {
@@ -75,16 +77,18 @@ fn get_mod_file(mut destination: PathBuf) -> Result<File, Error> {
     destination.push("mod");
     destination.set_extension("rs");
 
+    let filename = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => String::from("mod.rs"),
+    };
+
     match File::create(destination.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match destination.as_path().to_str() {
-                    Some(pth) => String::from(pth),
-                    None => String::from("mod.rs"),
-                },
+                file: filename,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, filename)),
     }
 }
 
@@ -94,7 +98,7 @@ fn get_mod_file(mut destination: PathBuf) -> Result<File, Error> {
 /// An error will be returned in the following cases:
 /// - the path is not a directory
 /// - we were not able to create the corresponding file
-fn get_object_file<'a>(object: &Object, path: &'a Path) -> Result<File, Error> {
+fn get_object_file<'a>(object: &Object, path: &'a Path) -> Result<(File, String), Error> {
     if !path.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match path.to_str() {
@@ -108,16 +112,18 @@ fn get_object_file<'a>(object: &Object, path: &'a Path) -> Result<File, Error> {
     pbuf.push(&lowercase);
     pbuf.set_extension("rs");
 
+    let filename = match pbuf.to_str() {
+        Some(pth) => String::from(pth),
+        None => format!("{}.rs", lowercase),
+    };
+
     match File::create(pbuf.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match pbuf.to_str() {
-                    Some(pth) => String::from(pth),
-                    None => format!("{}.rs", lowercase),
-                },
+                file: filename,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, filename)),
     }
 }
 
@@ -228,14 +234,14 @@ pub fn generate_code(
     }
 
     //second, let us generate the mod file to have all object structs public
-    let (file_content, mut file) = if output_type == RustOutputType::Module {
+    let (file_content, (mut file, filename)) = if output_type == RustOutputType::Module {
         (get_mod_file_content(objects)?, get_mod_file(pbuf)?)
     } else {
         (get_lib_file_content(objects)?, get_lib_file(pbuf)?)
     };
     match file.write(file_content.as_bytes()) {
         Err(_e) => Err(Error::UnableToWriteToFile {
-            file: file,
+            file: filename,
             content: file_content,
         }),
         Ok(size_written) => {
@@ -243,7 +249,7 @@ pub fn generate_code(
                 Ok(())
             } else {
                 Err(Error::UnableToWriteToFile {
-                    file: file,
+                    file: filename,
                     content: file_content,
                 })
             }
@@ -263,11 +269,11 @@ fn generate_rust<'a>(object: &Object, db: &ObjectDB, path: &'a Path) -> Result<(
         generate_rust_free_functions(object)
     );
 
-    let mut file = get_object_file(object, path)?;
+    let (mut file, filename) = get_object_file(object, path)?;
 
     match file.write(file_content.as_bytes()) {
         Err(_e) => Err(Error::UnableToWriteToFile {
-            file: file,
+            file: filename,
             content: file_content,
         }),
         Ok(_) => Ok(()),

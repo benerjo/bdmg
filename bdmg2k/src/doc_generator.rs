@@ -26,7 +26,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
-fn get_md_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
+fn get_md_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
     if !dir.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match dir.to_str() {
@@ -41,20 +41,22 @@ fn get_md_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
     destination.push(doc_name);
     destination.set_extension("md");
 
+    let file_name = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => format!("{}.md", doc_name),
+    };
+
     match File::create(destination.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match destination.as_path().to_str() {
-                    Some(pth) => String::from(pth),
-                    None => format!("{}.md", doc_name),
-                },
+                file: file_name,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, file_name)),
     }
 }
 
-fn get_dot_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
+fn get_dot_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
     if !dir.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match dir.to_str() {
@@ -69,16 +71,18 @@ fn get_dot_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
     destination.push(doc_name);
     destination.set_extension("dot");
 
+    let filename = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => format!("{}.dot", doc_name),
+    };
+
     match File::create(destination.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match destination.as_path().to_str() {
-                    Some(pth) => String::from(pth),
-                    None => format!("{}.dot", doc_name),
-                },
+                file: filename,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, filename)),
     }
 }
 
@@ -326,19 +330,19 @@ pub fn write_doc(object_db: &ObjectDB, destination: &str, doc_name: &str) -> Res
 
     let markdown_content = format!("#Data Model\n##Table of content\n{}\n{}", toc, content);
 
-    let mut markdown_file = get_md_file(&pbuf, doc_name)?;
+    let (mut markdown_file, md_filename) = get_md_file(&pbuf, doc_name)?;
 
     match markdown_file.write(markdown_content.as_bytes()) {
         Err(_e) => {
             return Err(Error::UnableToWriteToFile {
-                file: markdown_file,
+                file: md_filename,
                 content: markdown_content,
             })
         }
         Ok(size_written) => {
             if size_written != markdown_content.as_bytes().len() {
                 return Err(Error::UnableToWriteToFile {
-                    file: markdown_file,
+                    file: md_filename,
                     content: markdown_content,
                 });
             }
@@ -350,18 +354,18 @@ pub fn write_doc(object_db: &ObjectDB, destination: &str, doc_name: &str) -> Res
         subgraphs = subgraphs,
         arcs = all_arcs,
     );
-    let mut dot_file = get_dot_file(&pbuf, doc_name)?;
+    let (mut dot_file, dot_filename) = get_dot_file(&pbuf, doc_name)?;
     match dot_file.write(dot_content.as_bytes()) {
         Err(_e) => {
             return Err(Error::UnableToWriteToFile {
-                file: dot_file,
+                file: dot_filename,
                 content: dot_content,
             })
         }
         Ok(size_written) => {
             if size_written != dot_content.as_bytes().len() {
                 return Err(Error::UnableToWriteToFile {
-                    file: dot_file,
+                    file: dot_filename,
                     content: dot_content,
                 });
             }
