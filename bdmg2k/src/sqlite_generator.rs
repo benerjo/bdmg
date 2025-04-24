@@ -32,19 +32,19 @@ pub fn write_install(object_db: &ObjectDB, destination: &str, doc_name: &str) ->
 
     let content = generate_sqlite_install(object_db);
 
-    let mut markdown_file = get_sqlite_file(&pbuf, doc_name)?;
+    let (mut sql_file, filename) = get_sqlite_file(&pbuf, doc_name)?;
 
-    match markdown_file.write(content.as_bytes()) {
+    match sql_file.write(content.as_bytes()) {
         Err(_e) => {
             return Err(Error::UnableToWriteToFile {
-                file: markdown_file,
+                file: filename,
                 content,
             })
         }
         Ok(size_written) => {
             if size_written != content.as_bytes().len() {
                 return Err(Error::UnableToWriteToFile {
-                    file: markdown_file,
+                    file: filename,
                     content,
                 });
             }
@@ -53,7 +53,7 @@ pub fn write_install(object_db: &ObjectDB, destination: &str, doc_name: &str) ->
     Ok(())
 }
 
-fn get_sqlite_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
+fn get_sqlite_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
     if !dir.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: match dir.to_str() {
@@ -66,18 +66,20 @@ fn get_sqlite_file(dir: &PathBuf, doc_name: &str) -> Result<File, Error> {
     let mut destination = PathBuf::from(dir);
 
     destination.push(doc_name);
-    destination.set_extension("md");
+    destination.set_extension("sql");
+
+    let filename = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => format!("{}.sql", doc_name),
+    };
 
     match File::create(destination.as_path()) {
         Err(_e) => {
             return Err(Error::UnableToCreateFile {
-                file: match destination.as_path().to_str() {
-                    Some(pth) => String::from(pth),
-                    None => format!("{}.md", doc_name),
-                },
+                file: filename,
             })
         }
-        Ok(f) => Ok(f),
+        Ok(f) => Ok((f, filename)),
     }
 }
 
