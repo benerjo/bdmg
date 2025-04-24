@@ -207,6 +207,14 @@ pub fn generate_code(
     output_type: RustOutputType,
 ) -> Result<(), Error> {
     let pbuf = PathBuf::from(destination);
+
+    if !pbuf.exists() {
+        match std::fs::create_dir(&pbuf) {
+            Ok(()) => {},
+            Err(e) => return Err(Error::UnableToCreateOutputDirectory { destination: destination.to_string(), error: e }),
+        }
+    }
+
     if !pbuf.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: destination.to_string(),

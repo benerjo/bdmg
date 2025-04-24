@@ -36,6 +36,10 @@ pub use objectdb::ObjectDB;
 
 #[derive(Debug)]
 pub enum Error {
+    UnableToCreateOutputDirectory {
+        destination: String,
+        error: std::io::Error,
+    },
     DestinationIsNotDirectory {
         destination: String,
     },

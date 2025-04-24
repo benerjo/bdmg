@@ -236,6 +236,14 @@ fn get_dot_node_arcs(object: &Object) -> (String, String) {
 
 pub fn write_doc(object_db: &ObjectDB, destination: &str, doc_name: &str) -> Result<(), Error> {
     let pbuf = PathBuf::from(destination);
+
+    if !pbuf.exists() {
+        match std::fs::create_dir(&pbuf) {
+            Ok(()) => {},
+            Err(e) => return Err(Error::UnableToCreateOutputDirectory { destination: destination.to_string(), error: e }),
+        }
+    }
+
     if !pbuf.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: String::from(destination),
