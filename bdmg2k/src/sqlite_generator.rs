@@ -22,8 +22,16 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
-pub fn write_install(object_db: &ObjectDB, destination: &str, doc_name: &str) -> Result<(), Error> {
+pub fn write_install(object_db: &ObjectDB, destination: &str, script_name: &str) -> Result<(), Error> {
     let pbuf = PathBuf::from(destination);
+
+    if !pbuf.exists() {
+        match std::fs::create_dir(&pbuf) {
+            Ok(()) => {},
+            Err(e) => return Err(Error::UnableToCreateOutputDirectory { destination: destination.to_string(), error: e }),
+        }
+    }
+
     if !pbuf.is_dir() {
         return Err(Error::DestinationIsNotDirectory {
             destination: String::from(destination),
@@ -32,7 +40,7 @@ pub fn write_install(object_db: &ObjectDB, destination: &str, doc_name: &str) ->
 
     let content = generate_sqlite_install(object_db);
 
-    let (mut sql_file, filename) = get_sqlite_file(&pbuf, doc_name)?;
+    let (mut sql_file, filename) = get_sqlite_file(&pbuf, script_name)?;
 
     match sql_file.write(content.as_bytes()) {
         Err(_e) => {
