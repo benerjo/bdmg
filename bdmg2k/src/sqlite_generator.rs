@@ -117,7 +117,7 @@ fn sqlite_table(obj: &Object) -> String {
             crate::AttributeType::Optional(_) => String::new(),
         };
         let sql_type = match attribute.get_type().get_base_type() {
-            crate::BaseAttributeType::Integer => String::from("INTEGER"),
+            crate::BaseAttributeType::Integer => String::from("BIGINT"),
             crate::BaseAttributeType::String => String::from("VARCHAR"),
             crate::BaseAttributeType::Reference(refered) => {
                 foreign_keys = format!(
@@ -133,7 +133,7 @@ fn sqlite_table(obj: &Object) -> String {
         columns = format!("{columns},\n    {column_name} {sql_type}{nullable}")
     }
     format!(
-        "CREATE TABLE {table_name} (\n    id INTEGER PRIMARY KEY NOT NULL{columns},    version INTEGER NOT NULL{foreign_keys}{uniques}\n);\n",
+        "CREATE TABLE {table_name} (\n    id INTEGER PRIMARY KEY NOT NULL{columns},\n    version BIGINT NOT NULL{foreign_keys}{uniques}\n);\n",
         
     )
 }
