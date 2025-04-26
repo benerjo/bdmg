@@ -435,9 +435,7 @@ fn generate_object_traits_impl(object: &Object) -> String {
         self.version
     }}
     fn get_attribute(&self, attribute : &str) -> Result<String, String> {{
-        match attribute.as_ref() {{ {attr_getters}
-            _ => Err(format!(\"Undefined attribute {{}}\", attribute))
-        }}
+        {attr_getters}
     }}
     fn set_attribute(&mut self, attribute: &str, _value: &str, _connection: &mut SqliteConnection) -> Result<(), bdmg::Error> {{
         match attribute.as_ref() {{
@@ -460,6 +458,9 @@ fn generate_object_traits_impl(object: &Object) -> String {
 }
 
 fn generate_traits_impl_object_get_attr(object: &Object) -> String {
+    if !object.has_public_attributes() {
+        return String::from("Err(format!(\"Undefined attribute {}\", attribute))");
+    }
     let mut matches = String::new();
     for at in object.get_attributes() {
         if !at.is_secret() {
@@ -493,7 +494,9 @@ fn generate_traits_impl_object_get_attr(object: &Object) -> String {
             );
         }
     }
-    matches
+    format!("match attribute.as_ref() {{ {matches}
+            _ => Err(format!(\"Undefined attribute {{}}\", attribute))
+        }}")
 }
 
 fn generate_traits_impl_object_set_attr(object: &Object) -> String {

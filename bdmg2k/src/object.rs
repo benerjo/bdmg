@@ -78,6 +78,22 @@ impl Object {
         self.attr.iter()
     }
 
+    ///Check if the object has attributes, private or not
+    pub fn has_attributes(&self) -> bool {
+        !self.attr.is_empty()
+    }
+
+    ///Check if the object has public attribues. A public attribute
+    /// is an attribute that is not secret.
+    pub fn has_public_attributes(&self) -> bool {
+        for at in &self.attr {
+            if !at.is_secret() {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// Retrieve the attribute that is referencing the object whose name is the
     /// given parameter
     pub fn get_relation_attribute(&self, referenced: &str) -> Option<&Attribute> {
