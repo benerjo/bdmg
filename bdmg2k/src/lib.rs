@@ -58,13 +58,71 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::UnableToCreateOutputDirectory { destination, error } => writeln!(f, "Unable to create the directory '{destination}': Error: {error}"),
-            Error::DestinationIsNotDirectory { destination } => writeln!(f, "The destination '{destination}' is not a directory."),
-            Error::UnableToCreateFile { file } => writeln!(f, "Unable to create the file '{file}'."),
-            Error::UnableToWriteToFile { file, content } => writeln!(f, "Unable to write to the file '{file}': >>>{}", content.replace("\n", "\n>>>")),
-            Error::UnableToWriteCodeForObject { object_name } => writeln!(f, "Unable to create the code for the object '{object_name}'."),
+            Error::UnableToCreateOutputDirectory { destination, error } => writeln!(
+                f,
+                "Unable to create the directory '{destination}': Error: {error}"
+            ),
+            Error::DestinationIsNotDirectory { destination } => {
+                writeln!(f, "The destination '{destination}' is not a directory.")
+            }
+            Error::UnableToCreateFile { file } => {
+                writeln!(f, "Unable to create the file '{file}'.")
+            }
+            Error::UnableToWriteToFile { file, content } => writeln!(
+                f,
+                "Unable to write to the file '{file}': >>>{}",
+                content.replace("\n", "\n>>>")
+            ),
+            Error::UnableToWriteCodeForObject { object_name } => writeln!(
+                f,
+                "Unable to create the code for the object '{object_name}'."
+            ),
         }
     }
 }
 
 impl std::error::Error for Error {}
+
+#[derive(Debug)]
+pub enum ValidationError {
+    UnknownReferencedType {
+        referenced_type: String,
+        object: String,
+        attribute: String,
+    },
+    ObjectReferecendedMultipleTimes {
+        referenced_type: String,
+        object_referencing: String,
+        attributes: Vec<String>,
+    },
+}
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationError::UnknownReferencedType {
+                referenced_type,
+                object,
+                attribute,
+            } => writeln!(
+                f,
+                "Unknown referenced type '{referenced_type}' in '{object}.{attribute}'"
+            ),
+            ValidationError::ObjectReferecendedMultipleTimes {
+                referenced_type,
+                object_referencing,
+                attributes,
+            } => {
+                write!(f,
+                "Object type '{referenced_type}' is being referenced multiple times in '{object_referencing}'.["
+            )?;
+                for a in attributes {
+                    write!(f, "'{a}' ")?;
+                }
+                writeln!(f, "]")
+            }
+        }
+    }
+}
+
+impl std::error::Error for ValidationError {}

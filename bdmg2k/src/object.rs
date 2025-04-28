@@ -17,7 +17,7 @@
     along with bdmg.  If not, see <https://www.gnu.org/licenses/>
 */
 
-use crate::attributes::Attribute;
+use crate::{attributes::Attribute, ValidationError};
 
 use std::collections::HashMap;
 
@@ -206,24 +206,29 @@ impl Object {
     pub fn validate<'a, 'b, 'c>(
         &self,
         objects_map: &'c HashMap<&'a String, &'b Object>,
-    ) -> Result<(), String> {
-        let mut refered_objects = HashMap::with_capacity(objects_map.len());
+    ) -> Result<(), ValidationError> {
+        let mut refered_objects = HashMap::<&String, &String>::with_capacity(objects_map.len());
         for at in self.get_attributes() {
             match at.get_reference() {
                 Some(r) => {
                     if !objects_map.contains_key(r) {
-                        return Err(format!(
-                            "Unknown referenced type '{ref_type_name}' in '{object_name}.{attribute_name}'",
-                            ref_type_name = r,
-                            object_name = self.get_name(),
-                            attribute_name = at.get_name()
-                        ));
+                        return Err(ValidationError::UnknownReferencedType {
+                            referenced_type: r.clone(),
+                            object: self.get_name().clone(),
+                            attribute: at.get_name().clone(),
+                        });
                     }
                     //There is currently a problem if an object has two references to the same object.
                     //The problem lies with the current implementation of back references: the referenced
                     //object will have 2 or more functions with the same name.
                     match refered_objects.get(r) {
-                        Some(v) => return Err(format!("Double reference to the same object in '{object_name}': both '{first}' and '{second}' are referencing the type '{ref_type_name}'.", object_name = self.get_name(), first = v, second = at.get_name(), ref_type_name = r)),
+                        Some(v) => {
+                            return Err(ValidationError::ObjectReferecendedMultipleTimes {
+                                referenced_type: r.clone(),
+                                object_referencing: self.get_name().clone(),
+                                attributes: vec![(*v).clone(), at.get_name().clone()],
+                            })
+                        }
                         None => {
                             refered_objects.insert(r, at.get_name());
                         }

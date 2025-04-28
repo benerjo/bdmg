@@ -18,7 +18,7 @@
 */
 
 use crate::object::Object;
-use crate::rust_generator;
+use crate::{rust_generator, ValidationError};
 
 use std::collections::BTreeMap;
 use std::error::Error;
@@ -106,17 +106,14 @@ impl ObjectDB {
     }
 
     ///Make sure that all referenced objects are existing in this object store
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), ValidationError> {
         use std::collections::HashMap;
         let mut objects_map = HashMap::new();
         for obj in &self.objects {
             objects_map.insert(obj.get_name(), obj);
         }
         for obj in &self.objects {
-            match obj.validate(&objects_map) {
-                Ok(_) => {}
-                Err(e) => return Err(e),
-            }
+            obj.validate(&objects_map)?;
         }
         Ok(())
     }
@@ -127,17 +124,14 @@ impl ObjectDB {
     }
 
     ///Generate the rust code for all objects
-    pub fn generate(&self) -> Result<(), String> {
-        match rust_generator::generate_code(
+    pub fn generate(&self) -> Result<(), crate::Error> {
+        rust_generator::generate_code(
             &self,
             &self.rust_destination,
             match &self.rust_output {
                 Some(t) => *t,
                 None => RustOutputType::Module,
             },
-        ) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(format!("{:?}", e)),
-        }
+        )
     }
 }
