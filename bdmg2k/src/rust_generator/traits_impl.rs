@@ -45,7 +45,7 @@ impl ObjectIntrospection for {object_name}ObjectIntrospection {{
 // ObjectIntrospection
 
 fn generate_object_introspection_traits_impl(object: &Object, db: &ObjectDB) -> String {
-    let mut attr_name_list = String::new();
+    let mut attr_name_list = format!("        let {}attrs = Vec::new();\n", if object.has_public_attributes(){"mut "} else {""});
     for at in object.get_attributes() {
         if !at.is_secret() {
             attr_name_list = format!(
@@ -55,7 +55,8 @@ fn generate_object_introspection_traits_impl(object: &Object, db: &ObjectDB) -> 
             );
         }
     }
-    let mut attr_list = String::new();
+    let mut attr_list = format!("        let {}attrs = Vec::new();
+    ", if object.has_public_attributes(){"mut "} else {""});
     for at in object.get_attributes() {
         if !at.is_secret() {
             let attribute_type = match at.get_type().get_base_type() {
@@ -98,14 +99,12 @@ fn generate_object_introspection_traits_impl(object: &Object, db: &ObjectDB) -> 
     );
     format!(
         "fn get_attribute_names(&self) -> Vec<String> {{
-        let mut attrs = Vec::new();
 {attr_name_list}
         return attrs;
     }}
     
     fn get_attributes(&self) -> Vec<bdmg::Attribute> {{
-        let mut attrs = Vec::new();
-    {attr_list}
+{attr_list}
         return attrs;
     }}
     
