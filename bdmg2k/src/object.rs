@@ -207,8 +207,19 @@ impl Object {
         &self,
         objects_map: &'c HashMap<&'a String, &'b Object>,
     ) -> Result<(), ValidationError> {
+        if is_name_reserved(&self.get_name()) {
+            return Err(ValidationError::ObjectIsUsingReservedName {
+                object_name: self.get_name().clone(),
+            });
+        }
         let mut refered_objects = HashMap::<&String, &String>::with_capacity(objects_map.len());
         for at in self.get_attributes() {
+            if is_name_reserved(&at.get_name()) {
+                return Err(ValidationError::AttributeIsUsingReservedName {
+                    object_name: self.get_name().clone(),
+                    attribute_name: at.get_name().clone(),
+                });
+            }
             match at.get_reference() {
                 Some(r) => {
                     if !objects_map.contains_key(r) {
@@ -238,5 +249,170 @@ impl Object {
             }
         }
         Ok(())
+    }
+}
+
+fn is_name_reserved(name: &str) -> bool {
+    let reserved = [
+        "ABORT",
+        "ACTION",
+        "ADD",
+        "AFTER",
+        "ALL",
+        "ALTER",
+        "ALWAYS",
+        "ANALYZE",
+        "AND",
+        "AS",
+        "ASC",
+        "ATTACH",
+        "AUTOINCREMENT",
+        "BEFORE",
+        "BEGIN",
+        "BETWEEN",
+        "BY",
+        "CASCADE",
+        "CASE",
+        "CAST",
+        "CHECK",
+        "COLLATE",
+        "COLUMN",
+        "COMMIT",
+        "CONFLICT",
+        "CONSTRAINT",
+        "CREATE",
+        "CROSS",
+        "CURRENT",
+        "CURRENT_DATE",
+        "CURRENT_TIME",
+        "CURRENT_TIMESTAMP",
+        "DATABASE",
+        "DEFAULT",
+        "DEFERRABLE",
+        "DEFERRED",
+        "DELETE",
+        "DESC",
+        "DETACH",
+        "DISTINCT",
+        "DO",
+        "DROP",
+        "EACH",
+        "ELSE",
+        "END",
+        "ESCAPE",
+        "EXCEPT",
+        "EXCLUDE",
+        "EXCLUSIVE",
+        "EXISTS",
+        "EXPLAIN",
+        "FAIL",
+        "FILTER",
+        "FIRST",
+        "FOLLOWING",
+        "FOR",
+        "FOREIGN",
+        "FROM",
+        "FULL",
+        "GENERATED",
+        "GLOB",
+        "GROUP",
+        "GROUPS",
+        "HAVING",
+        "IF",
+        "IGNORE",
+        "IMMEDIATE",
+        "IN",
+        "INDEX",
+        "INDEXED",
+        "INITIALLY",
+        "INNER",
+        "INSERT",
+        "INSTEAD",
+        "INTERSECT",
+        "INTO",
+        "IS",
+        "ISNULL",
+        "JOIN",
+        "KEY",
+        "LAST",
+        "LEFT",
+        "LIKE",
+        "LIMIT",
+        "MATCH",
+        "MATERIALIZED",
+        "NATURAL",
+        "NO",
+        "NOT",
+        "NOTHING",
+        "NOTNULL",
+        "NULL",
+        "NULLS",
+        "OF",
+        "OFFSET",
+        "ON",
+        "OR",
+        "ORDER",
+        "OTHERS",
+        "OUTER",
+        "OVER",
+        "PARTITION",
+        "PLAN",
+        "PRAGMA",
+        "PRECEDING",
+        "PRIMARY",
+        "QUERY",
+        "RAISE",
+        "RANGE",
+        "RECURSIVE",
+        "REFERENCES",
+        "REGEXP",
+        "REINDEX",
+        "RELEASE",
+        "RENAME",
+        "REPLACE",
+        "RESTRICT",
+        "RETURNING",
+        "RIGHT",
+        "ROLLBACK",
+        "ROW",
+        "ROWS",
+        "SAVEPOINT",
+        "SELECT",
+        "SET",
+        "TABLE",
+        "TEMP",
+        "TEMPORARY",
+        "THEN",
+        "TIES",
+        "TO",
+        "TRANSACTION",
+        "TRIGGER",
+        "UNBOUNDED",
+        "UNION",
+        "UNIQUE",
+        "UPDATE",
+        "USING",
+        "VACUUM",
+        "VALUES",
+        "VIEW",
+        "VIRTUAL",
+        "WHEN",
+        "WHERE",
+        "WINDOW",
+        "WITH",
+        "WITHOUT",
+    ];
+    let uppercase_name = name.to_uppercase();
+    reserved.binary_search(&uppercase_name.as_str()).is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reserved_names() {
+        assert!(is_name_reserved("where"));
+        assert!(!is_name_reserved("bdmg2k"));
     }
 }

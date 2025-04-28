@@ -95,6 +95,13 @@ pub enum ValidationError {
         object_referencing: String,
         attributes: Vec<String>,
     },
+    ObjectIsUsingReservedName {
+        object_name: String,
+    },
+    AttributeIsUsingReservedName {
+        object_name: String,
+        attribute_name: String,
+    },
 }
 
 impl std::fmt::Display for ValidationError {
@@ -114,13 +121,23 @@ impl std::fmt::Display for ValidationError {
                 attributes,
             } => {
                 write!(f,
-                "Object type '{referenced_type}' is being referenced multiple times in '{object_referencing}'.["
-            )?;
+                                "Object type '{referenced_type}' is being referenced multiple times in '{object_referencing}'.["
+                            )?;
                 for a in attributes {
                     write!(f, "'{a}' ")?;
                 }
                 writeln!(f, "]")
             }
+            ValidationError::ObjectIsUsingReservedName { object_name } => {
+                writeln!(f, "Object '{object_name}' is using a reserved name")
+            }
+            ValidationError::AttributeIsUsingReservedName {
+                object_name,
+                attribute_name,
+            } => writeln!(
+                f,
+                "Attribute '{attribute_name}' in '{object_name}' is using a reserved name"
+            ),
         }
     }
 }
