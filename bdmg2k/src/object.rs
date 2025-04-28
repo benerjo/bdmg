@@ -17,7 +17,7 @@
     along with bdmg.  If not, see <https://www.gnu.org/licenses/>
 */
 
-use crate::attributes::{Attribute, AttributeType, BaseAttributeType};
+use crate::attributes::Attribute;
 
 use std::collections::HashMap;
 
@@ -207,13 +207,9 @@ impl Object {
         &self,
         objects_map: &'c HashMap<&'a String, &'b Object>,
     ) -> Result<(), String> {
+        let mut refered_objects = HashMap::with_capacity(objects_map.len());
         for at in self.get_attributes() {
-            let reference = match at.get_type() {
-                AttributeType::Mandatory(BaseAttributeType::Reference(r)) => Some(r),
-                AttributeType::Optional(BaseAttributeType::Reference(r)) => Some(r),
-                _ => None,
-            };
-            match reference {
+            match at.get_reference() {
                 Some(r) => {
                     if !objects_map.contains_key(r) {
                         return Err(format!(
@@ -223,6 +219,15 @@ impl Object {
                             attribute_name = at.get_name()
                         ));
                     }
+                    //There is currently a problem if an object has two references to the same object.
+                    //The problem lies with the current implementation of back references: the referenced
+                    //object will have 2 or more functions with the same name.
+                    match refered_objects.get(r) {
+                        Some(v) => return Err(format!("Double reference to the same object in '{object_name}': both '{first}' and '{second}' are referencing the type '{ref_type_name}'.", object_name = self.get_name(), first = v, second = at.get_name(), ref_type_name = r)),
+                        None => {
+                            refered_objects.insert(r, at.get_name());
+                        }
+                    };
                 }
                 None => {}
             }
