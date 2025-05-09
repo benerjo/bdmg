@@ -22,6 +22,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
+///Create the installation script for the object database
 pub fn write_install(object_db: &ObjectDB, destination: &str, script_name: &str) -> Result<(), Error> {
     let pbuf = PathBuf::from(destination);
 
