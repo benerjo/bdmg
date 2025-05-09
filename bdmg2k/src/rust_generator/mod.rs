@@ -33,63 +33,15 @@ use self::free_fn::generate_rust_free_functions;
 use self::rust_impl::generate_rust_impl;
 use self::traits_impl::generate_traits_impl;
 
-fn get_lib_file(mut destination: PathBuf) -> Result<(File, String), Error> {
-    if !destination.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match destination.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-
-    destination.push("lib");
-    destination.set_extension("rs");
-
-    let filename = match destination.as_path().to_str() {
-        Some(pth) => String::from(pth),
-        None => String::from("lib.rs"),
-    };
-
-    match File::create(destination.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: filename,
-            })
-        }
-        Ok(f) => Ok((f, filename)),
-    }
+fn get_lib_file(destination: PathBuf) -> Result<(File, String), Error> {
+    super::get_file(&destination, "lib", "rs")
 }
 
 ///Retrieve the file that should contain the mod file
 ///
 /// The file will be located inside of the destination that is given as parameter
-fn get_mod_file(mut destination: PathBuf) -> Result<(File, String), Error> {
-    if !destination.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match destination.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-
-    destination.push("mod");
-    destination.set_extension("rs");
-
-    let filename = match destination.as_path().to_str() {
-        Some(pth) => String::from(pth),
-        None => String::from("mod.rs"),
-    };
-
-    match File::create(destination.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: filename,
-            })
-        }
-        Ok(f) => Ok((f, filename)),
-    }
+fn get_mod_file(destination: PathBuf) -> Result<(File, String), Error> {
+    super::get_file(&destination, "mod", "rs")
 }
 
 ///Retrieve the file that will contain the rust code related to the given object
@@ -98,33 +50,12 @@ fn get_mod_file(mut destination: PathBuf) -> Result<(File, String), Error> {
 /// An error will be returned in the following cases:
 /// - the path is not a directory
 /// - we were not able to create the corresponding file
-fn get_object_file<'a>(object: &Object, path: &'a Path) -> Result<(File, String), Error> {
-    if !path.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match path.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-    let mut pbuf = PathBuf::from(path);
-    let lowercase = object.get_name().to_ascii_lowercase();
-    pbuf.push(&lowercase);
-    pbuf.set_extension("rs");
-
-    let filename = match pbuf.to_str() {
-        Some(pth) => String::from(pth),
-        None => format!("{}.rs", lowercase),
-    };
-
-    match File::create(pbuf.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: filename,
-            })
-        }
-        Ok(f) => Ok((f, filename)),
-    }
+fn get_object_file(object: &Object, path: &Path) -> Result<(File, String), Error> {
+    super::get_file(
+        &PathBuf::from(path),
+        &object.get_name().to_ascii_lowercase(),
+        "rs",
+    )
 }
 
 fn get_lib_file_content(objects: &ObjectDB) -> Result<String, Error> {
@@ -216,8 +147,13 @@ pub fn generate_code(
 
     if !pbuf.exists() {
         match std::fs::create_dir(&pbuf) {
-            Ok(()) => {},
-            Err(e) => return Err(Error::UnableToCreateOutputDirectory { destination: destination.to_string(), error: e }),
+            Ok(()) => {}
+            Err(e) => {
+                return Err(Error::UnableToCreateOutputDirectory {
+                    destination: destination.to_string(),
+                    error: e,
+                })
+            }
         }
     }
 

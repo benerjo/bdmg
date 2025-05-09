@@ -61,34 +61,8 @@ pub fn write_install(object_db: &ObjectDB, destination: &str, script_name: &str)
     Ok(())
 }
 
-fn get_sqlite_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
-    if !dir.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match dir.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-
-    let mut destination = PathBuf::from(dir);
-
-    destination.push(doc_name);
-    destination.set_extension("sql");
-
-    let filename = match destination.as_path().to_str() {
-        Some(pth) => String::from(pth),
-        None => format!("{}.sql", doc_name),
-    };
-
-    match File::create(destination.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: filename,
-            })
-        }
-        Ok(f) => Ok((f, filename)),
-    }
+fn get_sqlite_file(dir: &PathBuf, script_name: &str) -> Result<(File, String), Error> {
+    super::get_file(dir, script_name, "sql")
 }
 
 //Generate the sqlite directives to create the necessary table for the datamodel

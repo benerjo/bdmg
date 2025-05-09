@@ -27,63 +27,11 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 
 fn get_md_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
-    if !dir.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match dir.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-
-    let mut destination = PathBuf::from(dir);
-
-    destination.push(doc_name);
-    destination.set_extension("md");
-
-    let file_name = match destination.as_path().to_str() {
-        Some(pth) => String::from(pth),
-        None => format!("{}.md", doc_name),
-    };
-
-    match File::create(destination.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: file_name,
-            })
-        }
-        Ok(f) => Ok((f, file_name)),
-    }
+    super::get_file(dir, doc_name, "md")
 }
 
 fn get_dot_file(dir: &PathBuf, doc_name: &str) -> Result<(File, String), Error> {
-    if !dir.is_dir() {
-        return Err(Error::DestinationIsNotDirectory {
-            destination: match dir.to_str() {
-                Some(p) => String::from(p),
-                None => String::from("UNKNOWN"),
-            },
-        });
-    }
-
-    let mut destination = PathBuf::from(dir);
-
-    destination.push(doc_name);
-    destination.set_extension("dot");
-
-    let filename = match destination.as_path().to_str() {
-        Some(pth) => String::from(pth),
-        None => format!("{}.dot", doc_name),
-    };
-
-    match File::create(destination.as_path()) {
-        Err(_e) => {
-            return Err(Error::UnableToCreateFile {
-                file: filename,
-            })
-        }
-        Ok(f) => Ok((f, filename)),
-    }
+    super::get_file(dir, doc_name, "dot")
 }
 
 fn create_category_mapping(object_db: &ObjectDB) -> BTreeMap<String, Vec<&Object>> {
@@ -243,8 +191,13 @@ pub fn write_doc(object_db: &ObjectDB, destination: &str, doc_name: &str) -> Res
 
     if !pbuf.exists() {
         match std::fs::create_dir(&pbuf) {
-            Ok(()) => {},
-            Err(e) => return Err(Error::UnableToCreateOutputDirectory { destination: destination.to_string(), error: e }),
+            Ok(()) => {}
+            Err(e) => {
+                return Err(Error::UnableToCreateOutputDirectory {
+                    destination: destination.to_string(),
+                    error: e,
+                })
+            }
         }
     }
 

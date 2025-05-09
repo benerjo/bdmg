@@ -143,3 +143,35 @@ impl std::fmt::Display for ValidationError {
 }
 
 impl std::error::Error for ValidationError {}
+
+///Retrieve or create a given file
+/// Return a pair containing the std::fs::File and the filename
+fn get_file(
+    dir: &std::path::PathBuf,
+    filename: &str,
+    extension: &str,
+) -> Result<(std::fs::File, String), Error> {
+    if !dir.is_dir() {
+        return Err(Error::DestinationIsNotDirectory {
+            destination: match dir.to_str() {
+                Some(p) => String::from(p),
+                None => String::from("UNKNOWN"),
+            },
+        });
+    }
+
+    let mut destination = std::path::PathBuf::from(dir);
+
+    destination.push(filename);
+    destination.set_extension(extension);
+
+    let filename = match destination.as_path().to_str() {
+        Some(pth) => String::from(pth),
+        None => format!("{filename}.{extension}"),
+    };
+
+    match std::fs::File::create(destination.as_path()) {
+        Err(_e) => return Err(Error::UnableToCreateFile { file: filename }),
+        Ok(f) => Ok((f, filename)),
+    }
+}
