@@ -36,7 +36,7 @@ pub enum RustOutputType {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ObjectDB {
     ///The directory in which the code will be generated
-    rust_destination: String,
+    rust_destination: Option<String>,
     ///The type of output that must be generated
     rust_output: Option<RustOutputType>,
     ///The list of objects
@@ -105,6 +105,12 @@ impl ObjectDB {
         self.objects.get(index)
     }
 
+    ///Function to specify the output directory.
+    /// As good practice, it should be set to the OUT_DIR
+    pub fn set_rust_destination(&mut self, output_directory: &str) {
+        self.rust_destination = Some(output_directory.to_string())
+    }
+
     ///Make sure that all referenced objects are existing in this object store
     pub fn validate(&self) -> Result<(), ValidationError> {
         use std::collections::HashMap;
@@ -125,9 +131,12 @@ impl ObjectDB {
 
     ///Generate the rust code for all objects
     pub fn generate(&self) -> Result<(), crate::Error> {
+        if self.rust_destination.is_none() {
+            return Err(crate::Error::NoDestinationDirectorySpecified);
+        }
         rust_generator::generate_code(
             &self,
-            &self.rust_destination,
+            self.rust_destination.as_ref().unwrap(),
             match &self.rust_output {
                 Some(t) => *t,
                 None => RustOutputType::Module,

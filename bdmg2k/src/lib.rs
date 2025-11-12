@@ -43,6 +43,7 @@ pub enum Error {
     DestinationIsNotDirectory {
         destination: String,
     },
+    NoDestinationDirectorySpecified,
     UnableToCreateFile {
         file: String,
     },
@@ -76,6 +77,10 @@ impl std::fmt::Display for Error {
             Error::UnableToWriteCodeForObject { object_name } => write!(
                 f,
                 "Unable to create the code for the object '{object_name}'."
+            ),
+            Error::NoDestinationDirectorySpecified => write!(
+                f,
+                "No destination directory has been set for the code to be generated in."
             ),
         }
     }
