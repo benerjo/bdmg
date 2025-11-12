@@ -73,6 +73,16 @@ impl Object {
         &self.comm
     }
 
+    ///Retrieve the description of an attribute
+    pub fn get_attribute(&mut self, attribute_name: &str) -> Option<&mut Attribute> {
+        for at in &mut self.attr {
+            if at.get_name() == attribute_name {
+                return Some(at);
+            }
+        }
+        return None;
+    }
+
     ///Retrieve an iterator to the attributes of this object
     pub fn get_attributes(&self) -> std::slice::Iter<'_, Attribute> {
         self.attr.iter()
@@ -210,6 +220,12 @@ impl Object {
         if is_name_reserved(&self.get_name()) {
             return Err(ValidationError::ObjectIsUsingReservedName {
                 object_name: self.get_name().clone(),
+            });
+        }
+        if self.tbnm.contains("_") {
+            return Err(ValidationError::TableNameIsInvalid {
+                object_name: self.name.clone(),
+                table_name: self.tbnm.clone(),
             });
         }
         let mut refered_objects = HashMap::<&String, &String>::with_capacity(objects_map.len());

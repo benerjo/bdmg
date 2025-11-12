@@ -49,19 +49,19 @@ impl AttributeType {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash)]
 pub struct Attribute {
     /// The name of the attribute
-    name: String,
+    pub name: String,
     /// The type of the attribute
-    is: AttributeType,
+    pub is: AttributeType,
     /// Optional, comments relative to the attribute
-    comm: Option<String>,
+    pub comm: Option<String>,
     /// Optional, whether the attribute is mutable or not. Default is false
-    mutable: Option<bool>,
+    pub mutable: Option<bool>,
     /// Optional, whether the attribute could be used as index in queries.
     /// If set to true, the system expect the value to be unique in the column
-    indexable: Option<bool>,
+    pub indexable: Option<bool>,
     /// Optional, whether the attribute should be considered as secret
     /// a secret attribute will not be deserialized
-    secret: Option<bool>,
+    pub secret: Option<bool>,
 }
 
 impl Attribute {

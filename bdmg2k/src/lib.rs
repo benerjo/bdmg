@@ -58,22 +58,22 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::UnableToCreateOutputDirectory { destination, error } => writeln!(
+            Error::UnableToCreateOutputDirectory { destination, error } => write!(
                 f,
                 "Unable to create the directory '{destination}': Error: {error}"
             ),
             Error::DestinationIsNotDirectory { destination } => {
-                writeln!(f, "The destination '{destination}' is not a directory.")
+                write!(f, "The destination '{destination}' is not a directory.")
             }
             Error::UnableToCreateFile { file } => {
-                writeln!(f, "Unable to create the file '{file}'.")
+                write!(f, "Unable to create the file '{file}'.")
             }
-            Error::UnableToWriteToFile { file, content } => writeln!(
+            Error::UnableToWriteToFile { file, content } => write!(
                 f,
                 "Unable to write to the file '{file}': >>>{}",
                 content.replace("\n", "\n>>>")
             ),
-            Error::UnableToWriteCodeForObject { object_name } => writeln!(
+            Error::UnableToWriteCodeForObject { object_name } => write!(
                 f,
                 "Unable to create the code for the object '{object_name}'."
             ),
@@ -102,6 +102,10 @@ pub enum ValidationError {
         object_name: String,
         attribute_name: String,
     },
+    TableNameIsInvalid {
+        object_name: String,
+        table_name: String,
+    },
 }
 
 impl std::fmt::Display for ValidationError {
@@ -111,7 +115,7 @@ impl std::fmt::Display for ValidationError {
                 referenced_type,
                 object,
                 attribute,
-            } => writeln!(
+            } => write!(
                 f,
                 "Unknown referenced type '{referenced_type}' in '{object}.{attribute}'"
             ),
@@ -121,22 +125,29 @@ impl std::fmt::Display for ValidationError {
                 attributes,
             } => {
                 write!(f,
-                                "Object type '{referenced_type}' is being referenced multiple times in '{object_referencing}'.["
-                            )?;
+                                        "Object type '{referenced_type}' is being referenced multiple times in '{object_referencing}'.["
+                                    )?;
                 for a in attributes {
                     write!(f, "'{a}' ")?;
                 }
-                writeln!(f, "]")
+                write!(f, "]")
             }
             ValidationError::ObjectIsUsingReservedName { object_name } => {
-                writeln!(f, "Object '{object_name}' is using a reserved name")
+                write!(f, "Object '{object_name}' is using a reserved name")
             }
             ValidationError::AttributeIsUsingReservedName {
                 object_name,
                 attribute_name,
-            } => writeln!(
+            } => write!(
                 f,
                 "Attribute '{attribute_name}' in '{object_name}' is using a reserved name"
+            ),
+            ValidationError::TableNameIsInvalid {
+                object_name,
+                table_name,
+            } => write!(
+                f,
+                "The table name '{table_name}' related to the object '{object_name}' is invalid"
             ),
         }
     }
