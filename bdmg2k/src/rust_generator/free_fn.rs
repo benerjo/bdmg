@@ -25,7 +25,7 @@ fn retrieve_next_{object_lowercase}_object<'a>(
     current_id: i32,
     last_id: i32,
     connection: &'a mut diesel::sqlite::SqliteConnection,
-) -> (i32, Option<Result<Box<(dyn Object + 'static)>, String>>) {{
+) -> (i32, Option<Result<Box<dyn Object + 'static>, String>>) {{
     if last_id < current_id {{
         return (current_id, None);
     }}

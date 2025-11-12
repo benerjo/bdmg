@@ -114,7 +114,7 @@ fn generate_object_introspection_traits_impl(object: &Object, db: &ObjectDB) -> 
     
     fn create_factory<'a>(
         &self
-    ) -> Box<(dyn ObjectFactory + 'static)> {{
+    ) -> Box<dyn ObjectFactory + 'static> {{
         Box::new({object_name}ObjectFactory {{
     {atdef}        }})
     }}
@@ -124,7 +124,7 @@ fn generate_object_introspection_traits_impl(object: &Object, db: &ObjectDB) -> 
         connection: &mut diesel::sqlite::SqliteConnection,
         id: i32,
         version: Option<i64>
-    ) -> Result<Box<(dyn Object + 'static)>, bdmg::Error> {{
+    ) -> Result<Box<dyn Object + 'static>, bdmg::Error> {{
         {get_object_code}
     }}
     
@@ -323,14 +323,14 @@ fn loadmultiplefn(object: &Object) -> String {
         from: i32,
         max_count: i32,
         connection: &mut SqliteConnection,
-    ) -> Result<Vec<Box<(dyn Object + 'static)>>, bdmg::Error> {{
+    ) -> Result<Vec<Box<dyn Object + 'static>>, bdmg::Error> {{
         let result = {table_name}::dsl::{table_name}
             {select_clause}
             .order({table_name}::id.asc())
             .limit(max_count.into())
             .offset(from.into())
             .load::<{object_name}>(connection)?;
-        let mut dyn_objects = Vec::<Box<(dyn Object + 'static)>>::with_capacity(result.len());
+        let mut dyn_objects = Vec::<Box<dyn Object + 'static>>::with_capacity(result.len());
         for instance in result {{
             dyn_objects.push(Box::new(instance))
         }}
@@ -580,7 +580,7 @@ fn generate_object_factory_traits_impl(object: &Object) -> String {
     format!(
 "impl ObjectFactory for {object_name}ObjectFactory {{
     fn set_attribute(&mut self, attribute_name: &str, attribute_value: &str) -> Result<(), bdmg::Error> {{\n        {setter}\n    }}
-    fn create(&mut self, connection: &mut diesel::sqlite::SqliteConnection) -> Result<Box<(dyn Object + 'static)>, bdmg::Error> {{\n{create}\n    }}\n}}",
+    fn create(&mut self, connection: &mut diesel::sqlite::SqliteConnection) -> Result<Box<dyn Object + 'static>, bdmg::Error> {{\n{create}\n    }}\n}}",
     object_name = object.get_name(),
     setter = generate_object_factory_traits_impl_setter(object),
     create = generate_object_factory_traits_impl_create(object))
