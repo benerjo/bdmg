@@ -46,7 +46,7 @@ pub struct ObjectIterator<'a> {
         i32,
         i32,
         &mut diesel::sqlite::SqliteConnection,
-    ) -> (i32, Option<Result<Box<(dyn Object + 'static)>, String>>),
+    ) -> (i32, Option<Result<Box<dyn Object + 'static>, String>>),
     ///The connection that will be used to the database
     connection: &'a mut diesel::sqlite::SqliteConnection,
 }
@@ -64,8 +64,7 @@ impl<'a> ObjectIterator<'a> {
             next_id: i32,
             last_id: i32,
             connection: &mut diesel::sqlite::SqliteConnection,
-        )
-            -> (i32, Option<Result<Box<(dyn Object + 'static)>, String>>),
+        ) -> (i32, Option<Result<Box<dyn Object + 'static>, String>>),
     ) -> ObjectIterator<'a> {
         ObjectIterator {
             next_id: first_id,
@@ -77,7 +76,7 @@ impl<'a> ObjectIterator<'a> {
 }
 
 impl<'a> Iterator for ObjectIterator<'a> {
-    type Item = Result<Box<(dyn Object + 'static)>, String>;
+    type Item = Result<Box<dyn Object + 'static>, String>;
     fn next(&mut self) -> Option<Self::Item> {
         if self.next_id > self.last_id {
             None
@@ -97,7 +96,7 @@ pub trait ObjectFactory {
     fn create(
         &mut self,
         connection: &mut diesel::sqlite::SqliteConnection,
-    ) -> Result<Box<(dyn Object + 'static)>, Error>;
+    ) -> Result<Box<dyn Object + 'static>, Error>;
 }
 
 ///Enumeration to represent all potential types that can be provided
@@ -255,14 +254,14 @@ pub trait ObjectIntrospection {
     ///Retrieve the category of the object
     fn get_category(&self) -> Option<String>;
     ///Generate an object factory to create a new object instance
-    fn create_factory<'a>(&self) -> Box<(dyn ObjectFactory + 'static)>;
+    fn create_factory<'a>(&self) -> Box<dyn ObjectFactory + 'static>;
     ///Retrieve the object based on its id and version
     fn get_object(
         &self,
         connection: &mut diesel::sqlite::SqliteConnection,
         id: i32,
         version: Option<i64>,
-    ) -> Result<Box<(dyn Object + 'static)>, Error>;
+    ) -> Result<Box<dyn Object + 'static>, Error>;
     ///Retrieve the current number of instances
     fn get_nb_defined(&self, connection: &mut diesel::sqlite::SqliteConnection) -> i64;
     ///Load multiple instances, from a given id with a maximum number of instances
@@ -271,7 +270,7 @@ pub trait ObjectIntrospection {
         from: i32,
         max_count: i32,
         connection: &mut diesel::sqlite::SqliteConnection,
-    ) -> Result<Vec<Box<(dyn Object + 'static)>>, Error>;
+    ) -> Result<Vec<Box<dyn Object + 'static>>, Error>;
     ///Retrieve the list of back references
     fn get_back_references(&self) -> Vec<BackReference>;
     ///Retrieve the list of objects referencing the instance with the given id
