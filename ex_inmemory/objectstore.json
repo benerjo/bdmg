@@ -1,0 +1,168 @@
+{
+    "rust_output": "Module",
+    "objects": [
+        {
+            "comm": "A user is a person that is allowed to access/use the system",
+            "name": "User",
+            "tbnm": "users",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "password",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "mutable": true,
+                    "secret": true,
+                    "comm": "The hashed password of the user. It is secret and should not be transfered out of the server."
+                },
+                {
+                    "name": "name",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "mutable": true,
+                    "indexable": true,
+                    "comm": "The name/login of the user. This name is unique among all different User."
+                },
+                {
+                    "name": "email",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "mutable": true,
+                    "comm": "The email address to use to contact the user."
+                },
+                {
+                    "name": "resetcode",
+                    "is": {
+                        "Optional": "String"
+                    },
+                    "mutable": true,
+                    "secret": true,
+                    "comm": "The code needed to reset the password. If set, the password should not be used anymore."
+                }
+            ]
+        },
+        {
+            "comm": "A group of users",
+            "name": "UserGroup",
+            "tbnm": "ugroups",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "name",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "comm": "The name of the user's group",
+                    "mutable": true
+                }
+            ]
+        },
+        {
+            "comm": "The object specifying which user is part of wich group. A user can be in mutliple group.",
+            "name": "UserGroupMembership",
+            "tbnm": "ugroupmbr",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "usr",
+                    "is": {
+                        "Mandatory": {
+                            "Reference": "User"
+                        }
+                    },
+                    "mutable": false,
+                    "comm": "The user that is member of the given group"
+                },
+                {
+                    "name": "grp",
+                    "is": {
+                        "Mandatory": {
+                            "Reference": "UserGroup"
+                        }
+                    },
+                    "mutable": false,
+                    "comm": "The group of which the user is a member of"
+                }
+            ]
+        },
+        {
+            "comm": "A task is an action that a user could perform.",
+            "name": "Task",
+            "tbnm": "tsk",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "name",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "mutable": true,
+                    "indexable": true,
+                    "comm": "The name of a task, uniquely identifying it."
+                },
+                {
+                    "name": "description",
+                    "is": {
+                        "Optional": "String"
+                    },
+                    "mutable": true,
+                    "comm": "The description of the task, what this task entails."
+                }
+            ]
+        },
+        {
+            "comm": "A role is a set of action that a user is allowed to perform.",
+            "name": "Role",
+            "tbnm": "rl",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "name",
+                    "is": {
+                        "Mandatory": "String"
+                    },
+                    "mutable": true,
+                    "indexable": true,
+                    "comm": "A unique name for the role"
+                },
+                {
+                    "name": "description",
+                    "is": {
+                        "Optional": "String"
+                    },
+                    "mutable": true,
+                    "comm": "The description of the role"
+                }
+            ]
+        },
+        {
+            "comm": "The object specifying which role is allowed to perform which task.",
+            "name": "RoleAllowedToPerform",
+            "tbnm": "rlatp",
+            "category": "Website",
+            "attr": [
+                {
+                    "name": "role",
+                    "is": {
+                        "Mandatory": {
+                            "Reference": "Role"
+                        }
+                    },
+                    "mutable": false
+                },
+                {
+                    "name": "task",
+                    "is": {
+                        "Mandatory": {
+                            "Reference": "Task"
+                        }
+                    },
+                    "mutable": false
+                }
+            ]
+        }
+    ]
+}

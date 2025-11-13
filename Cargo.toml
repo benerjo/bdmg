@@ -2,5 +2,7 @@
 members = [
     "bdmg2k",
     "bdmg",
+    "ex_inmemory"
 ]
+default-members = ["bdmg2k","bdmg"]
 resolver = "2"
