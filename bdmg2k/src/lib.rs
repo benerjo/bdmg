@@ -28,6 +28,7 @@ mod objectdb;
 
 pub mod doc_generator;
 pub mod rust_generator;
+pub mod schema_generator;
 pub mod sqlite_generator;
 
 pub use attributes::*;
